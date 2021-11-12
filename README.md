@@ -2,7 +2,7 @@
 
 Keyboard app with offline speech-to-text capability for Sailfish OS.
 
-Sort video demo: https://www.youtube.com/watch?v=olhY9kBWsXs 
+Short video demo: https://www.youtube.com/watch?v=olhY9kBWsXs 
 
 ## Description
 
