@@ -33,12 +33,12 @@ InputHandler {
         _handleKeyClick(key)
     }
 
-    //onActiveChanged: console.warn("SttInputHandler active:", root.active, keyboard.language)
-
     SttService {
         id: stt
-        active: root.active
-        onTextReady: sendText(text)
+        readonly property string layoutLang: stt.connected ? (keyboard.language === "中文" ? "zh-CN" : keyboard.language.toLowerCase()) : ""
+        readonly property string lang: stt.connected ? (stt.langs[layoutLang] ? layoutLang : "") : ""
+        active: root.active && keyboard.fullyOpen
+        onTextReady: root.sendText(text)
     }
 
     topItem: Component {
@@ -74,15 +74,19 @@ InputHandler {
 
                 clickable: true
                 speech: stt.speech
-                off: !stt.configured || !stt.connected
+                off: !stt.configured || !stt.connected || stt.lang.length === 0
                 busy: stt.busy
                 textPlaceholder: stt.connected ? stt.translate("press_say_smth") : qsTr("Press and say something...")
-                textPlaceholderActive: stt.connected ?
-                                           stt.configured ?
-                                               busy ? stt.translate("busy_stt") : stt.translate("say_smth") :
-                                               stt.translate("lang_not_conf") :
-                                       qsTr("Starting...")
-                onPressed: stt.startListen(keyboard.language==="中文" ? "zh-CN" : keyboard.language.toLowerCase())
+                textPlaceholderActive: {
+                    if (!stt.connected) return qsTr("Starting...")
+                    if (stt.configured) {
+                        if (busy) return stt.translate("busy_stt")
+                        if (stt.lang.length > 0) return stt.translate("say_smth")
+                    }
+                    return stt.translate("lang_not_conf")
+                }
+
+                onPressed: stt.startListen(stt.lang)
                 onReleased: stt.stopListen()
             }
         }

@@ -28,6 +28,7 @@ Item {
     readonly property bool anotherAppConnected: dbus.myTask !== dbus.currentTask
     readonly property bool busy: dbus.state === 2 || anotherAppConnected
     readonly property bool configured: dbus.state > 1
+    readonly property alias langs: dbus.langs
     signal intermediateTextReady(string text)
     signal textReady(string text)
 
@@ -118,6 +119,7 @@ Item {
         property int state: 0
         property bool speech: false
         property var translations
+        property var langs
 
         service: "org.mkiol.Stt"
         iface: "org.mkiol.Stt"
@@ -157,6 +159,10 @@ Item {
             }
         }
 
+        function langsPropertyChanged(langs) {
+            dbus.langs = langs
+        }
+
         function updateProperties() {
             dbus.translations = dbus.getProperty("Translations")
             dbus.currentTask = dbus.getProperty("CurrentTask")
@@ -167,6 +173,7 @@ Item {
             } else {
                 dbus.speech = false
             }
+            dbus.langs = dbus.getProperty("Langs")
         }
     }
 
