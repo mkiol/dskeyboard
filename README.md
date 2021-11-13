@@ -19,6 +19,8 @@ Following keyboard layouts are provided:
 - French / fr
 - Italian / it
 - Polish / pl
+- Romanian / ro
+- Russian / ru
 - Chinese / zh-CN
 
 Speech-to-text works for particular layout when the correct language model is configured via Speech Note app.

@@ -3,7 +3,7 @@ Name:       harbour-dskeyboard
 # >> macros
 # << macros
 
-Summary:    Speech-to-Text Keyboard
+Summary:    Speech-to-text Keyboard
 Version:    1.0.0
 Release:    1
 Group:      Qt/Qt
@@ -14,7 +14,7 @@ Source0:    %{name}-%{version}.tar.bz2
 Requires:   sailfishsilica-qt5 >= 0.10.9, maliit-framework-wayland, harbour-dsnote >= 1.4.0
 
 %description
-Speech-to-Text Keyboard
+Speech-to-text Keyboard
 
 
 %prep
@@ -48,6 +48,7 @@ cd %{buildroot}%{_datadir}/maliit/plugins/com/jolla/layouts/ \
 && ln -sf it.qml %{name}_it.qml \
 && ln -sf pl.qml %{name}_pl.qml \
 && ln -sf ro.qml %{name}_ro.qml \
+&& ln -sf ru.qml %{name}_ru.qml \
 && ln -sf zh_cn_stroke_simplified.qml %{name}_zh_cn_stroke_simplified.qml \
 && cd %{_builddir}
 
