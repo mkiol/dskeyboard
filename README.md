@@ -21,6 +21,7 @@ Following keyboard layouts are provided:
 - Polish / pl
 - Romanian / ro
 - Russian / ru
+- Ukrainian / uk
 - Chinese / zh-CN
 
 Speech-to-text works for particular layout when the correct language model is configured via **Speech Note** app.
