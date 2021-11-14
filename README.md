@@ -19,7 +19,6 @@ Following keyboard layouts are provided:
 - French / fr
 - Italian / it
 - Polish / pl
-- Romanian / ro
 - Russian / ru
 - Ukrainian / uk
 - Chinese / zh-CN

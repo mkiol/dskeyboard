@@ -47,7 +47,6 @@ cd %{buildroot}%{_datadir}/maliit/plugins/com/jolla/layouts/ \
 && ln -sf fr.qml %{name}_fr.qml \
 && ln -sf it.qml %{name}_it.qml \
 && ln -sf pl.qml %{name}_pl.qml \
-&& ln -sf ro.qml %{name}_ro.qml \
 && ln -sf ru.qml %{name}_ru.qml \
 && ln -sf uk.qml %{name}_uk.qml \
 && ln -sf zh_cn_stroke_simplified.qml %{name}_zh_cn_stroke_simplified.qml \
