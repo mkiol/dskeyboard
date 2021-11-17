@@ -33,9 +33,14 @@ InputHandler {
         _handleKeyClick(key)
     }
 
+//    onActiveChanged: {
+//        console.error("keyboard.layout.languageCode", keyboard.layout.languageCode)
+//        console.error("keyboard.layout.type", keyboard.layout.type)
+//    }
+
     SttService {
         id: stt
-        readonly property string layoutLang: stt.connected ? (keyboard.language === "中文" ? "zh-CN" : keyboard.language.toLowerCase()) : ""
+        readonly property string layoutLang: stt.connected ? (keyboard.layout.languageCode === "中文" ? "zh-CN" : keyboard.layout.languageCode.toLowerCase()) : ""
         readonly property string lang: stt.connected ? (stt.langs[layoutLang] ? layoutLang : "") : ""
         active: root.active && keyboard.fullyOpen
         onTextReady: root.sendText(text)
