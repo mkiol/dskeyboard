@@ -4,7 +4,7 @@ Name:       harbour-dskeyboard
 # << macros
 
 Summary:    Speech-to-text Keyboard
-Version:    1.0.0
+Version:    1.1.0
 Release:    1
 Group:      Qt/Qt
 License:    LICENSE
@@ -40,6 +40,7 @@ rm -rf %{buildroot}
 # << install pre
 %qmake5_install
 cd %{buildroot}%{_datadir}/maliit/plugins/com/jolla/layouts/ \
+&& ln -sf es.qml %{name}_ca.qml \
 && ln -sf cs.qml %{name}_cs.qml \
 && ln -sf en.qml %{name}_en.qml \
 && ln -sf de.qml %{name}_de.qml \
@@ -53,10 +54,10 @@ cd %{buildroot}%{_datadir}/maliit/plugins/com/jolla/layouts/ \
 && cd %{_builddir}
 
 %post
-systemctl-user restart maliit-server
+systemctl-user restart maliit-server >/dev/null 2>&1 || :
 
 %postun
-systemctl-user restart maliit-server
+systemctl-user restart maliit-server >/dev/null 2>&1 || :
 # >> install post
 # << install post
 

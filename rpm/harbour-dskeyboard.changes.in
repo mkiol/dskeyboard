@@ -12,5 +12,9 @@
 # * date Author's Name <author's email> version-release
 # - Summary of changes
 
+* Web Nov 17 2021 Michal Kosciesza <michal@mkiol.net> 1.1.0-1
+- Layout for Catalan (ca) lang
+- Fix to support SFOS 3.4
+
 * Su Nov 14 2021 Michal Kosciesza <michal@mkiol.net> 1.0.0-1
 - Initial version
