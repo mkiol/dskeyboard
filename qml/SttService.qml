@@ -11,24 +11,34 @@ import Nemo.DBus 2.0
 Item {
     id: root
 
-//    enum StateType {
-//        Unknown = 0,
-//        NotConfigured = 1,
-//        Busy = 2,
-//        Idle = 3,
-//        ListeningManual = 4,
-//        ListeningAuto = 5,
-//        TranscribingFile = 6
-//    }
+    /*
+    States:
+    0 = Unknown
+    1 = Not Configured
+    2 = Busy
+    3 = Idle
+    4 = Listening Manual
+    5 = Listening Auto
+    6 = Transcribing File
+    7 = Listening One-sentence
 
-    property bool active: false
+    Listening modes:
+    0 - Automatic
+    1 - Manual
+    2 - One Sentence
+    */
+
+    property bool active: false // set active to send keepalive pings to stt service
+    property int mode: 2 // 'One Sentence' is a default
+
     readonly property bool connected: dbus.state > 0
     readonly property alias speech: dbus.speech
-    readonly property alias state: dbus.state
+    readonly property bool listening: dbus.state > 3 && !anotherAppConnected
     readonly property bool anotherAppConnected: dbus.myTask !== dbus.currentTask
     readonly property bool busy: dbus.state === 2 || anotherAppConnected
     readonly property bool configured: dbus.state > 1
     readonly property alias langs: dbus.langs
+
     signal intermediateTextReady(string text)
     signal textReady(string text)
 
@@ -61,7 +71,7 @@ Item {
         if (!lang) lang = '';
 
         dbus.typedCall("StartListen",
-                  [{"type": "i", "value": 1}, {"type": "s", "value": lang}],
+                  [{"type": "i", "value": root.mode}, {"type": "s", "value": lang}],
                   function(result) {
                       dbus.myTask = result
                       if (result < 0) {

@@ -22,6 +22,7 @@ SilicaItem {
     property alias progress: busyIndicator.progress
     signal pressed()
     signal released()
+    signal click()
 
     readonly property bool _active: highlighted
     readonly property color _pColor: _active ? Theme.highlightColor : Theme.primaryColor
@@ -91,5 +92,6 @@ SilicaItem {
             if (pressed) root.pressed()
             else root.released()
         }
+        onClicked: root.click()
     }
 }

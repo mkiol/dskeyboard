@@ -81,18 +81,20 @@ InputHandler {
                 speech: stt.speech
                 off: !stt.configured || !stt.connected || stt.lang.length === 0
                 busy: stt.busy
-                textPlaceholder: stt.connected ? stt.translate("press_say_smth") : qsTr("Press and say something...")
+                textPlaceholder: stt.listening ? stt.translate("say_smth") : stt.translate("click_say_smth")
                 textPlaceholderActive: {
                     if (!stt.connected) return qsTr("Starting...")
                     if (stt.configured) {
                         if (busy) return stt.translate("busy_stt")
-                        if (stt.lang.length > 0) return stt.translate("say_smth")
+                        if (stt.lang.length > 0) return textPlaceholder
                     }
                     return stt.translate("lang_not_conf")
                 }
 
-                onPressed: stt.startListen(stt.lang)
-                onReleased: stt.stopListen()
+                onClick: {
+                    if (stt.listening) stt.stopListen()
+                    else stt.startListen(stt.lang)
+                }
             }
         }
     }
