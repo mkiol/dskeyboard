@@ -4,14 +4,14 @@ Name:       harbour-dskeyboard
 # << macros
 
 Summary:    Speech-to-text Keyboard
-Version:    1.1.0
+Version:    1.2.0
 Release:    1
 Group:      Qt/Qt
 License:    LICENSE
 BuildArch:  noarch
 URL:        https://github.com/mkiol/dskeyboard
 Source0:    %{name}-%{version}.tar.bz2
-Requires:   sailfishsilica-qt5 >= 0.10.9, maliit-framework-wayland, harbour-dsnote >= 1.4.0
+Requires:   sailfishsilica-qt5 >= 0.10.9, maliit-framework-wayland, harbour-dsnote >= 1.6.0
 
 %description
 Speech-to-text Keyboard
