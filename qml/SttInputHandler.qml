@@ -60,11 +60,14 @@ InputHandler {
                         panel.text = ""
                     }
                 }
+                onListeningChanged: {
+                    panel.clicked = false
+                }
             }
 
             PasteButton {
                 id: pasteButton
-                x: panel.down || panel.text.length > 0 ? -width : 0
+                x: panel.clicked || panel.down || stt.listening || panel.text.length > 0 ? -width : 0
                 Behavior on x { NumberAnimation { duration: 50 } }
                 onClicked: {
                     root.sendText(Clipboard.text)
@@ -76,6 +79,8 @@ InputHandler {
                 id: panel
                 anchors.left: pasteButton.right
                 anchors.right: parent.right
+
+                property bool clicked: false
 
                 clickable: true
                 speech: stt.speech
@@ -92,6 +97,9 @@ InputHandler {
                 }
 
                 onClick: {
+                    if (stt.connected && !stt.listening) clicked = true
+                    else clicked = false
+
                     if (stt.listening) stt.stopListen()
                     else stt.startListen(stt.lang)
                 }
