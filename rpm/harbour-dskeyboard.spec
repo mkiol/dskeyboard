@@ -41,6 +41,7 @@ rm -rf %{buildroot}
 %qmake5_install
 cd %{buildroot}%{_datadir}/maliit/plugins/com/jolla/layouts/ \
 && ln -sf es.qml %{name}_ca.qml \
+&& ln -sf fi.qml %{name}_fi.qml \
 && ln -sf cs.qml %{name}_cs.qml \
 && ln -sf en.qml %{name}_en.qml \
 && ln -sf de.qml %{name}_de.qml \
