@@ -11,7 +11,7 @@ License:    LICENSE
 BuildArch:  noarch
 URL:        https://github.com/mkiol/dskeyboard
 Source0:    %{name}-%{version}.tar.bz2
-Requires:   sailfishsilica-qt5 >= 0.10.9, maliit-framework-wayland, harbour-dsnote >= 1.6.0
+Requires:   sailfishsilica-qt5 >= 0.10.9, maliit-framework-wayland
 
 %description
 Speech-to-text Keyboard
