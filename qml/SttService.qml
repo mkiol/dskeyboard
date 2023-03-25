@@ -1,4 +1,4 @@
-/* Copyright (C) 2021 Michal Kosciesza <michal@mkiol.net>
+/* Copyright (C) 2021-2023 Michal Kosciesza <michal@mkiol.net>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -26,6 +26,11 @@ Item {
     0 - Automatic
     1 - Manual
     2 - One Sentence
+
+    Speech status:
+    0 - No Speech
+    1 - Speech Detected
+    2 - Speech Decoding
     */
 
     property bool active: false // set active to send keepalive pings to stt service
@@ -35,12 +40,32 @@ Item {
     readonly property alias speech: dbus.speech
     readonly property bool listening: dbus.state > 3 && !anotherAppConnected
     readonly property bool anotherAppConnected: dbus.myTask !== dbus.currentTask
-    readonly property bool busy: dbus.state === 2 || anotherAppConnected
+    readonly property bool busy: speech !== 2 && (dbus.state === 2 || anotherAppConnected)
     readonly property bool configured: dbus.state > 1
     readonly property alias langs: dbus.langs
 
     signal intermediateTextReady(string text)
     signal textReady(string text)
+
+    function cancel() {
+        if (busy) {
+            console.warn("cannot call cancel, stt service is busy")
+            return;
+        }
+
+        if (dbus.myTask < 0) {
+            console.warn("cannot call cancel, no active listening task")
+            return;
+        }
+
+        keepaliveTaskTimer.stop()
+        dbus.typedCall("Cancel", [{"type": "i", "value": dbus.myTask}],
+                       function(result) {
+                           if (result !== 0) {
+                               console.error("cancel failed")
+                           }
+                       }, _handle_error)
+    }
 
     function stopListen() {
         if (busy) {
@@ -127,7 +152,7 @@ Item {
         property int myTask: -1
         property int currentTask: -1
         property int state: 0
-        property bool speech: false
+        property int speech: 0
         property var translations
         property var langs
 
@@ -165,7 +190,7 @@ Item {
             if (dbus.currentTask > -1 && dbus.currentTask === dbus.myTask) {
                 dbus.speech = dbus.getProperty("Speech")
             } else {
-                dbus.speech = false
+                dbus.speech = 0
             }
         }
 
@@ -181,7 +206,7 @@ Item {
             if (dbus.currentTask > -1 && dbus.currentTask === dbus.myTask) {
                 dbus.speech = dbus.getProperty("Speech")
             } else {
-                dbus.speech = false
+                dbus.speech = 0
             }
             dbus.langs = dbus.getProperty("Langs")
         }

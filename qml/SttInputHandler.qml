@@ -1,4 +1,4 @@
-/* Copyright (C) 2021 Michal Kosciesza <michal@mkiol.net>
+/* Copyright (C) 2021-2023 Michal Kosciesza <michal@mkiol.net>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -82,14 +82,19 @@ InputHandler {
 
                 property bool clicked: false
 
-                clickable: true
-                speech: stt.speech
+                clickable: !busy
+                status: stt.speech
                 off: !stt.configured || !stt.connected || stt.lang.length === 0
                 busy: stt.busy
-                textPlaceholder: stt.listening ? stt.translate("say_smth") : stt.translate("click_say_smth")
+                textPlaceholder: {
+                    if (status === 2) return stt.translate("decoding")
+                    if (stt.listening) return stt.translate("say_smth")
+                    return stt.translate("click_say_smth")
+                }
                 textPlaceholderActive: {
                     if (!stt.connected) return qsTr("Starting...")
                     if (stt.configured) {
+                        if (status === 2) return stt.translate("decoding")
                         if (busy) return stt.translate("busy_stt")
                         if (stt.lang.length > 0) return textPlaceholder
                     }
@@ -99,6 +104,11 @@ InputHandler {
                 onClick: {
                     if (stt.connected && !stt.listening) clicked = true
                     else clicked = false
+
+                    if (status === 2) {
+                        stt.cancel()
+                        return
+                    }
 
                     if (stt.listening) stt.stopListen()
                     else stt.startListen(stt.lang)

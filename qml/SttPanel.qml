@@ -1,4 +1,4 @@
-/* Copyright (C) 2021 Michal Kosciesza <michal@mkiol.net>
+/* Copyright (C) 2021-2023 Michal Kosciesza <michal@mkiol.net>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -14,7 +14,7 @@ SilicaItem {
     property string text: ""
     property string textPlaceholder: ""
     property string textPlaceholderActive: ""
-    property alias speech: indicator.active
+    property alias status: indicator.status
     property bool clickable: true
     property alias off: indicator.off
     property alias busy: busyIndicator.running
@@ -32,14 +32,6 @@ SilicaItem {
     height: intermediateLabel.height + 2 * Theme.paddingLarge
     highlighted: mouse.pressed || !mouse.enabled
 
-//    Rectangle {
-//        anchors.fill: parent
-//        gradient: Gradient {
-//            GradientStop { position: 1.0; color: Theme.rgba(root.palette.highlightBackgroundColor, 0.05) }
-//            GradientStop { position: 0.0; color: Theme.rgba(root.palette.highlightBackgroundColor, 0.10) }
-//        }
-//    }
-
     SpeechIndicator {
         id: indicator
         anchors.topMargin: Theme.paddingLarge
@@ -48,7 +40,8 @@ SilicaItem {
         anchors.left: parent.left
         width: Theme.itemSizeSmall
         color: root._pColor
-        active: false
+        // 0 - no speech, 1 - speech detected, 2 - speech decoding
+        status: 0
         off: false
         visible: opacity > 0.0
         opacity: busyIndicator.running ? 0.0 : 1.0
@@ -86,7 +79,7 @@ SilicaItem {
 
     MouseArea {
         id: mouse
-        enabled: root.clickable && !root.busy && !root.off
+        enabled: root.clickable && !root.off
         anchors.fill: parent
         onPressedChanged: {
             if (pressed) root.pressed()
