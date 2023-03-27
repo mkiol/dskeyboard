@@ -96,7 +96,7 @@ Item {
         if (!lang) lang = '';
 
         dbus.typedCall("StartListen",
-                  [{"type": "i", "value": root.mode}, {"type": "s", "value": lang}],
+                  [{"type": "i", "value": root.mode}, {"type": "s", "value": lang}, {"type": "b", "value": false}],
                   function(result) {
                       dbus.myTask = result
                       if (result < 0) {
