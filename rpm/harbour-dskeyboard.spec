@@ -4,7 +4,7 @@ Name:       harbour-dskeyboard
 # << macros
 
 Summary:    Speech-to-text Keyboard
-Version:    1.3.0
+Version:    1.4.0
 Release:    1
 Group:      Qt/Qt
 License:    LICENSE
@@ -47,9 +47,16 @@ cd %{buildroot}%{_datadir}/maliit/plugins/com/jolla/layouts/ \
 && ln -sf de.qml %{name}_de.qml \
 && ln -sf es.qml %{name}_es.qml \
 && ln -sf fr.qml %{name}_fr.qml \
+&& ln -sf hi.qml %{name}_hi.qml \
 && ln -sf it.qml %{name}_it.qml \
+&& ln -sf kk.qml %{name}_kk.qml \
+&& ln -sf nl.qml %{name}_nl.qml \
+&& ln -sf no.qml %{name}_no.qml \
 && ln -sf pl.qml %{name}_pl.qml \
+&& ln -sf pt.qml %{name}_pt.qml \
 && ln -sf ru.qml %{name}_ru.qml \
+&& ln -sf sv.qml %{name}_sv.qml \
+&& ln -sf tr.qml %{name}_tr.qml \
 && ln -sf uk.qml %{name}_uk.qml \
 && ln -sf zh_cn_stroke_simplified.qml %{name}_zh_cn_stroke_simplified.qml \
 && cd %{_builddir}
