@@ -88,6 +88,7 @@ InputHandler {
                 busy: stt.busy
                 textPlaceholder: {
                     if (status === 2) return stt.translate("decoding")
+                    if (status === 3) return stt.translate("initializing")
                     if (stt.listening) return stt.translate("say_smth")
                     return stt.translate("click_say_smth")
                 }
@@ -95,6 +96,7 @@ InputHandler {
                     if (!stt.connected) return qsTr("Starting...")
                     if (stt.configured) {
                         if (status === 2) return stt.translate("decoding")
+                        if (status === 3) return stt.translate("initializing")
                         if (busy) return stt.translate("busy_stt")
                         if (stt.lang.length > 0) return textPlaceholder
                     }
@@ -105,7 +107,7 @@ InputHandler {
                     if (stt.connected && !stt.listening) clicked = true
                     else clicked = false
 
-                    if (status === 2) {
+                    if (status === 2 || status === 3) {
                         stt.cancel()
                         return
                     }

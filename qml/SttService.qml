@@ -31,6 +31,7 @@ Item {
     0 - No Speech
     1 - Speech Detected
     2 - Speech Decoding
+    3 - Speech Initializing
     */
 
     property bool active: false // set active to send keepalive pings to stt service
@@ -40,7 +41,7 @@ Item {
     readonly property alias speech: dbus.speech
     readonly property bool listening: dbus.state > 3 && !anotherAppConnected
     readonly property bool anotherAppConnected: dbus.myTask !== dbus.currentTask
-    readonly property bool busy: speech !== 2 && (dbus.state === 2 || anotherAppConnected)
+    readonly property bool busy: speech !== 2 && speech !== 3 && (dbus.state === 2 || anotherAppConnected)
     readonly property bool configured: dbus.state > 1
     readonly property alias langs: dbus.langs
 

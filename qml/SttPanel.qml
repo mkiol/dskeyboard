@@ -40,7 +40,8 @@ SilicaItem {
         anchors.left: parent.left
         width: Theme.itemSizeSmall
         color: root._pColor
-        // 0 - no speech, 1 - speech detected, 2 - speech decoding
+        // 0 - no speech, 1 - speech detected,
+        // 2 - speech decoding, 3 - speech initializing
         status: 0
         off: false
         visible: opacity > 0.0
