@@ -8,22 +8,30 @@ Short video demo: https://www.youtube.com/watch?v=olhY9kBWsXs
 
 **Speech Keybord** uses [Speech Note's STT service](https://github.com/mkiol/dsnote), so to make speech-to-text working you have to install and configure **Speech Note** app as well.
 
-## Layouts
+## Languages
 
-Following keyboard layouts are provided:
+Following languages are enabled:
 
+- Catalan / ca
 - Czech / cs
-- English / en
 - German / de
+- English / en
 - Spanish / es
+- Finnish / fi
 - French / fr
+- Hindi / hi
 - Italian / it
+- Kazakh / kk
+- Dutch / nl
 - Polish / pl
+- Portuguese / pt
 - Russian / ru
+- Swedish / sv
+- Turkish / tr
 - Ukrainian / uk
 - Chinese / zh-CN
 
-Speech-to-text works for particular layout when the correct language model is configured via **Speech Note** app.
+Speech-to-text works for particular keybord layout when the correct language model is configured via **Speech Note** app.
 
 ## Download
 
