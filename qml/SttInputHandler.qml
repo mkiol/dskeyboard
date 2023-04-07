@@ -22,14 +22,46 @@ InputHandler {
         return false
     }
 
+    function capitalize(text) {
+        return text.charAt(0).toUpperCase() + text.slice(1);
+    }
+
     function sendText(text) {
+        if (text.length === 0) return;
+
         var key = Qt.createComponent("KeyBase.qml").createObject(stt)
-        var st = MInputMethodQuick.surroundingText
-        if (st.length === 0 || st.charAt(st.length - 1) === " ") {
-            key.text = text
-        } else {
-            key.text = " " + text
+
+        if (MInputMethodQuick.surroundingTextValid
+                && MInputMethodQuick.contentType === Maliit.FreeTextContentType
+                && !MInputMethodQuick.hiddenText) {
+            var cap = MInputMethodQuick.autoCapitalizationEnabled
+            var position = MInputMethodQuick.cursorPosition
+            var stext = MInputMethodQuick.surroundingText
+            var btext = stext.substring(0, position)
+            var atext = stext.length > 0 ? stext.substring(position, stext.length - 1) : ""
+            var front0 = btext.length > 0 ? btext[btext.length - 1] : ""
+            var front1 = btext.length > 1 ? btext[btext.length - 2] : ""
+            var back0 = atext.length > 0 ? atext[0] : ""
+
+            if (front0.length > 0) {
+                if (front0 === " ") {
+                    if (cap && front1.length > 0 && ".?!".indexOf(front1) >= 0)
+                        text = capitalize(text)
+                } else {
+                    key.text += " "
+                    if (cap && ".?!".indexOf(front0) >= 0)
+                        text = capitalize(text)
+                }
+            } else {
+                text = capitalize(text)
+            }
+
+            if (back0.length === 0 || back0 !== " ")
+                text += " "
         }
+
+        key.text += text
+
         _handleKeyClick(key)
     }
 
