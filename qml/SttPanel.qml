@@ -41,7 +41,8 @@ SilicaItem {
         width: Theme.itemSizeSmall
         color: root._pColor
         // 0 - no speech, 1 - speech detected,
-        // 2 - speech decoding, 3 - speech initializing
+        // 2 - speech decoding, 3 - speech initializing,
+        // 4 - playing speech
         status: 0
         off: false
         visible: opacity > 0.0

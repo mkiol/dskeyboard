@@ -70,10 +70,10 @@ InputHandler {
 //        console.error("keyboard.layout.type", keyboard.layout.type)
 //    }
 
-    SttService {
+    SpeechService {
         id: stt
         readonly property string layoutLang: stt.connected ? (keyboard.layout.languageCode === "中文" ? "zh-CN" : keyboard.layout.languageCode.toLowerCase()) : ""
-        readonly property string lang: stt.connected ? (stt.langs[layoutLang] ? layoutLang : "") : ""
+        readonly property string lang: stt.connected ? (stt.sttLangs[layoutLang] ? layoutLang : "") : ""
         active: root.active && keyboard.fullyOpen
         onTextReady: root.sendText(text)
     }
@@ -139,7 +139,7 @@ InputHandler {
                     if (stt.connected && !stt.listening) clicked = true
                     else clicked = false
 
-                    if (status === 2 || status === 3) {
+                    if (status === 2 || status === 3 || status === 4) {
                         stt.cancel()
                         return
                     }

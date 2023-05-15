@@ -21,41 +21,51 @@ Item {
     5 = Listening Auto
     6 = Transcribing File
     7 = Listening One-sentence
+    8 = Playing speech
 
     Listening modes:
-    0 - Automatic
-    1 - Manual
-    2 - One Sentence
+    0 = Automatic
+    1 = Manual
+    2 = One Sentence
 
     Speech status:
-    0 - No Speech
-    1 - Speech Detected
-    2 - Speech Decoding
-    3 - Speech Initializing
+    0 = No Speech
+    1 = Speech Detected
+    2 = Speech Decoding/Encoding
+    3 = Speech Initializing
+    4 = Playing Speech
     */
 
     property bool active: false // set active to send keepalive pings to stt service
-    property int mode: 2 // 'One Sentence' is a default
+    property int listeningMode: 2 // 'One Sentence' is a default
 
     readonly property bool connected: dbus.state > 0
+    readonly property bool idle: dbus.state === 3
     readonly property alias speech: dbus.speech
-    readonly property bool listening: dbus.state > 3 && !anotherAppConnected
+    readonly property bool listening: dbus.state > 3 && dbus.state < 8 && !anotherAppConnected
+    readonly property bool playing: dbus.state === 8 && !anotherAppConnected
     readonly property bool anotherAppConnected: dbus.myTask !== dbus.currentTask
     readonly property bool busy: speech !== 2 && speech !== 3 && (dbus.state === 2 || anotherAppConnected)
+    readonly property alias sttLangs: dbus.sttLangs
+    readonly property alias ttsLangs: dbus.ttsLangs
+    readonly property alias sttLangList: dbus.sttLangList
+    readonly property alias ttsLangList: dbus.ttsLangList
+    readonly property alias sttTtsLangList: dbus.sttTtsLangList
     readonly property bool configured: dbus.state > 1
-    readonly property alias langs: dbus.langs
 
     signal intermediateTextReady(string text)
     signal textReady(string text)
+    signal partialSpeechPlaying(string text)
+    signal playSpeechFinished()
 
     function cancel() {
         if (busy) {
-            console.warn("cannot call cancel, stt service is busy")
+            console.warn("cannot call cancel, speech service is busy")
             return;
         }
 
         if (dbus.myTask < 0) {
-            console.warn("cannot call cancel, no active listening task")
+            console.warn("cannot call cancel, no active task")
             return;
         }
 
@@ -70,17 +80,17 @@ Item {
 
     function stopListen() {
         if (busy) {
-            console.warn("cannot call stopListen, stt service is busy")
+            console.warn("cannot call stopListen, speech service is busy")
             return;
         }
 
         if (dbus.myTask < 0) {
-            console.warn("cannot call stopListen, no active listening task")
+            console.warn("cannot call stopListen, no active task")
             return;
         }
 
         keepaliveTaskTimer.stop()
-        dbus.typedCall("StopListen", [{"type": "i", "value": dbus.myTask}],
+        dbus.typedCall("SttStopListen", [{"type": "i", "value": dbus.myTask}],
                        function(result) {
                            if (result !== 0) {
                                console.error("stopListen failed")
@@ -90,18 +100,61 @@ Item {
 
     function startListen(lang) {
         if (busy) {
-            console.error("cannot call startListen, stt service is busy")
+            console.error("cannot call startListen, speech service is busy")
             return;
         }
 
         if (!lang) lang = '';
 
-        dbus.typedCall("StartListen",
-                  [{"type": "i", "value": root.mode}, {"type": "s", "value": lang}, {"type": "b", "value": false}],
+        dbus.typedCall("SttStartListen",
+                  [{"type": "i", "value": root.listeningMode}, {"type": "s", "value": lang}, {"type": "b", "value": false}],
                   function(result) {
                       dbus.myTask = result
                       if (result < 0) {
                           console.error("startListen failed")
+                      } else {
+                          _keepAliveTask()
+                      }
+                  }, _handle_error)
+    }
+
+    function playSpeech(text, lang) {
+        if (busy) {
+            console.error("cannot call playListen, speech service is busy")
+            return;
+        }
+
+        if (!lang) lang = '';
+
+        dbus.typedCall("TtsPlaySpeech",
+                  [{"type": "s", "value": text}, {"type": "s", "value": lang}],
+                  function(result) {
+                      dbus.myTask = result
+                      if (result < 0) {
+                          console.error("playSpeech failed")
+                      } else {
+                          _keepAliveTask()
+                      }
+                  }, _handle_error)
+    }
+
+    function stopSpeech(text, lang) {
+        if (busy) {
+            console.error("cannot call stopSpeech, speech service is busy")
+            return;
+        }
+
+        if (dbus.myTask < 0) {
+            console.warn("cannot call stopSpeech, no active task")
+            return;
+        }
+
+        dbus.typedCall("TtsStopSpeech",
+                  [{"type": "i", "value": dbus.myTask}],
+                  function(result) {
+                      dbus.myTask = result
+                      if (result < 0) {
+                          console.error("stopSpeech failed")
                       } else {
                           _keepAliveTask()
                       }
@@ -122,7 +175,7 @@ Item {
         if (dbus.myTask < 0) return;
         dbus.typedCall("KeepAliveTask", [{"type": "i", "value": dbus.myTask}],
                        function(result) {
-                           if (result > 0 && root.active && dbus.myTask > 0) {
+                           if (result > 0 && root.active && dbus.myTask > -1) {
                                keepaliveTaskTimer.interval = result * 0.75
                                keepaliveTaskTimer.start()
                            }
@@ -154,24 +207,53 @@ Item {
         property int currentTask: -1
         property int state: 0
         property int speech: 0
-        property var translations
-        property var langs
+        property var translations: []
+        property var sttLangs
+        property var ttsLangs
+        property var sttLangList
+        property var ttsLangList
+        property var sttTtsLangList
 
-        service: "org.mkiol.Stt"
-        iface: "org.mkiol.Stt"
+        service: "org.mkiol.Speech"
+        iface: "org.mkiol.Speech"
         path: "/"
 
         signalsEnabled: true
 
-        function intermediateTextDecoded(text, lang, task) {
+        onStateChanged: {
+            console.log("speech service state changed:", state)
+        }
+        onSpeechChanged: {
+            console.log("speech service speech changed:", speech)
+        }
+        onMyTaskChanged: {
+            console.log("speech service my task changed:", myTask)
+        }
+        onCurrentTaskChanged: {
+            console.log("speech service current task changed:", currentTask)
+        }
+
+        function sttIntermediateTextDecoded(text, lang, task) {
             if (myTask === task) {
                 root.intermediateTextReady(text)
             }
         }
 
-        function textDecoded(text, lang, task) {
+        function sttTextDecoded(text, lang, task) {
             if (myTask === task) {
                 root.textReady(text)
+            }
+        }
+
+        function ttsPlaySpeechFinished(task) {
+            if (myTask === task) {
+                root.playSpeechFinished()
+            }
+        }
+
+        function ttsPartialSpeechPlaying(text, task) {
+            if (myTask === task) {
+                root.partialSpeechPlaying(text)
             }
         }
 
@@ -195,8 +277,24 @@ Item {
             }
         }
 
-        function langsPropertyChanged(langs) {
-            dbus.langs = langs
+        function sttLangsPropertyChanged(langs) {
+            dbus.sttLangs = langs
+        }
+
+        function ttsLangsPropertyChanged(langs) {
+            dbus.ttsLangs = langs
+        }
+
+        function sttLangListPropertyChanged(langs) {
+            dbus.sttLangList = langs
+        }
+
+        function ttsLangListPropertyChanged(langs) {
+            dbus.ttsLangList = langs
+        }
+
+        function sttTtsLangListPropertyChanged(langs) {
+            dbus.sttTtsLangList = langs
         }
 
         function updateProperties() {
@@ -209,7 +307,11 @@ Item {
             } else {
                 dbus.speech = 0
             }
-            dbus.langs = dbus.getProperty("Langs")
+            dbus.sttLangs = dbus.getProperty("SttLangs")
+            dbus.ttsLangs = dbus.getProperty("TtsLangs")
+            dbus.sttLangList = dbus.getProperty("SttLangList")
+            dbus.ttsLangList = dbus.getProperty("TtsLangList")
+            dbus.sttTtsLangList = dbus.getProperty("SttTtsLangList")
         }
     }
 
@@ -231,11 +333,15 @@ Item {
             dbus.updateProperties()
         } else {
             keepaliveServiceTimer.stop()
-            stopListen()
+            cancel()
         }
     }
 
+    Component.onCompleted: {
+        if (active) dbus.updateProperties()
+    }
+
     Component.onDestruction: {
-        stopListen()
+        cancel()
     }
 }
