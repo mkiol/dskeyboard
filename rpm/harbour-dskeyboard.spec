@@ -4,7 +4,7 @@ Name:       harbour-dskeyboard
 # << macros
 
 Summary:    Speech-to-text Keyboard
-Version:    1.4.0
+Version:    1.5.0
 Release:    1
 Group:      Qt/Qt
 License:    LICENSE
