@@ -70,6 +70,12 @@ InputHandler {
         _handleKeyClick(key)
     }
 
+    function langIdFromCode(code) {
+        if (code === "中文") return "zh"
+        if (code === "বাংলা") return "bn"
+        return code.toLowerCase()
+    }
+
 //    onActiveChanged: {
 //        console.error("keyboard.layout.languageCode", keyboard.layout.languageCode)
 //        console.error("keyboard.layout.type", keyboard.layout.type)
@@ -79,7 +85,7 @@ InputHandler {
         id: speechService
 
         readonly property string layoutLang: speechService.connected ?
-                                                 (keyboard.layout.languageCode === "中文" ? "zh" : keyboard.layout.languageCode.toLowerCase()) : ""
+                                                 root.langIdFromCode(keyboard.layout.languageCode) : ""
         readonly property string lang: speechService.connected && speechService.sttLangs
                                        && speechService.sttLangs[layoutLang] ? layoutLang : ""
         active: root.active && keyboard.fullyOpen
