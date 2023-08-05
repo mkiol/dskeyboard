@@ -26,12 +26,10 @@ InputHandler {
         return text.charAt(0).toUpperCase() + text.slice(1);
     }
 
-    function sendText(text) {
-        if (text.length === 0) return;
+    function fixText(text) {
+        var before = ""
 
-        var key = Qt.createComponent("KeyBase.qml").createObject(stt)
-
-        if (MInputMethodQuick.surroundingTextValid
+        if (text.length !== 0 && MInputMethodQuick.surroundingTextValid
                 && MInputMethodQuick.contentType === Maliit.FreeTextContentType
                 && !MInputMethodQuick.hiddenText) {
             var cap = MInputMethodQuick.autoCapitalizationEnabled
@@ -48,7 +46,7 @@ InputHandler {
                     if (cap && front1.length > 0 && ".?!".indexOf(front1) >= 0)
                         text = capitalize(text)
                 } else {
-                    key.text += " "
+                    before += " "
                     if (cap && ".?!".indexOf(front0) >= 0)
                         text = capitalize(text)
                 }
@@ -60,6 +58,13 @@ InputHandler {
                 text += " "
         }
 
+        return before + text
+    }
+
+    function sendText(text) {
+        if (text.length === 0) return;
+
+        var key = Qt.createComponent("KeyBase.qml").createObject(speechService)
         key.text += text
 
         _handleKeyClick(key)
@@ -71,11 +76,13 @@ InputHandler {
 //    }
 
     SpeechService {
-        id: stt
-        readonly property string layoutLang: stt.connected ? (keyboard.layout.languageCode === "中文" ? "zh-CN" : keyboard.layout.languageCode.toLowerCase()) : ""
-        readonly property string lang: stt.connected ? (stt.sttLangs[layoutLang] ? layoutLang : "") : ""
+        id: speechService
+
+        readonly property string layoutLang: speechService.connected ?
+                                                 (keyboard.layout.languageCode === "中文" ? "zh" : keyboard.layout.languageCode.toLowerCase()) : ""
+        readonly property string lang: speechService.connected && speechService.sttLangs
+                                       && speechService.sttLangs[layoutLang] ? layoutLang : ""
         active: root.active && keyboard.fullyOpen
-        onTextReady: root.sendText(text)
     }
 
     topItem: Component {
@@ -84,11 +91,17 @@ InputHandler {
             height: panel.height
 
             Connections {
-                target: stt
-                onIntermediateTextReady: panel.text = text
-                onTextReady: panel.text = ""
+                target: speechService
+
+                onIntermediateTextReady: {
+                    if (text.length !== 0) panel.text = text
+                }
+                onTextReady: {
+                    panel.text = root.fixText(text)
+                    panel.dialogMode = true
+                }
                 onActiveChanged: {
-                    if (!stt.active) {
+                    if (!speechService.active) {
                         panel.text = ""
                     }
                 }
@@ -99,7 +112,8 @@ InputHandler {
 
             PasteButton {
                 id: pasteButton
-                x: panel.clicked || panel.down || stt.listening || panel.text.length > 0 ? -width : 0
+
+                x: panel.clicked || panel.down || speechService.listening || panel.text.length > 0 ? -width : 0
                 Behavior on x { NumberAnimation { duration: 50 } }
                 onClicked: {
                     root.sendText(Clipboard.text)
@@ -109,43 +123,55 @@ InputHandler {
 
             SttPanel {
                 id: panel
+
                 anchors.left: pasteButton.right
                 anchors.right: parent.right
 
                 property bool clicked: false
 
                 clickable: !busy
-                status: stt.speech
-                off: !stt.configured || !stt.connected || stt.lang.length === 0
-                busy: stt.busy
+                status: speechService.taskState
+                off: !speechService.configured || !speechService.connected || speechService.lang.length === 0
+                busy: speechService.busy
                 textPlaceholder: {
-                    if (status === 2) return stt.translate("decoding")
-                    if (status === 3) return stt.translate("initializing")
-                    if (stt.listening) return stt.translate("say_smth")
-                    return stt.translate("click_say_smth")
+                    if (status === 2) return speechService.translate_literal("decoding")
+                    if (status === 3) return speechService.translate_literal("initializing")
+                    if (speechService.listening) return speechService.translate_literal("say_smth")
+                    return speechService.translate_literal("click_say_smth")
                 }
                 textPlaceholderActive: {
-                    if (!stt.connected) return qsTr("Starting...")
-                    if (stt.configured) {
-                        if (status === 2) return stt.translate("decoding")
-                        if (status === 3) return stt.translate("initializing")
-                        if (busy) return stt.translate("busy_stt")
-                        if (stt.lang.length > 0) return textPlaceholder
+                    if (!speechService.connected) return qsTr("Starting...")
+                    if (speechService.configured) {
+                        if (status === 2) return speechService.translate_literal("decoding")
+                        if (status === 3) return speechService.translate_literal("initializing")
+                        if (busy) return speechService.translate_literal("busy_stt")
+                        if (speechService.lang.length > 0) return textPlaceholder
                     }
-                    return stt.translate("lang_not_conf")
+                    return speechService.translate_literal("lang_not_conf")
                 }
 
                 onClick: {
-                    if (stt.connected && !stt.listening) clicked = true
+                    if (speechService.connected && !speechService.listening) clicked = true
                     else clicked = false
 
                     if (status === 2 || status === 3 || status === 4) {
-                        stt.cancel()
+                        speechService.cancel()
                         return
                     }
 
-                    if (stt.listening) stt.stopListen()
-                    else stt.startListen(stt.lang)
+                    if (speechService.listening) speechService.stopListen()
+                    else speechService.startListen(speechService.lang)
+                }
+
+                onAccept: {
+                    root.sendText(text)
+                    text = ""
+                    dialogMode = false
+                }
+
+                onDismiss: {
+                    text = ""
+                    dialogMode = false
                 }
             }
         }

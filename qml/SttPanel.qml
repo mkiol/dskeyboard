@@ -20,68 +20,123 @@ SilicaItem {
     property alias busy: busyIndicator.running
     readonly property alias down: mouse.pressed
     property alias progress: busyIndicator.progress
+    property double buttonSize: Math.min(intermediateLabel.height + 2 * Theme.paddingLarge, Theme.itemSizeExtraSmall)
+    property bool dialogMode: false
+
     signal pressed()
     signal released()
     signal click()
+    signal accept()
+    signal dismiss()
 
     readonly property bool _active: highlighted
     readonly property color _pColor: _active ? Theme.highlightColor : Theme.primaryColor
     readonly property color _sColor: _active ? Theme.secondaryHighlightColor : Theme.secondaryColor
     readonly property bool _empty: text.length === 0
 
-    height: intermediateLabel.height + 2 * Theme.paddingLarge
-    highlighted: mouse.pressed || !mouse.enabled
+    height: row.height
+    highlighted: mouse.pressed || !root.clickable || root.off
 
-    SpeechIndicator {
-        id: indicator
-        anchors.topMargin: Theme.paddingLarge
-        anchors.top: parent.top
-        anchors.leftMargin: Theme.paddingSmall
-        anchors.left: parent.left
-        width: Theme.itemSizeSmall
-        color: root._pColor
-        // 0 - no speech, 1 - speech detected,
-        // 2 - speech decoding, 3 - speech initializing,
-        // 4 - playing speech
-        status: 0
-        off: false
-        visible: opacity > 0.0
-        opacity: busyIndicator.running ? 0.0 : 1.0
-        Behavior on opacity { NumberAnimation { duration: 150 } }
+    Row {
+        id: row
 
-    }
+        height: intermediateLabel.height + 2 * Theme.paddingLarge
+        spacing: Theme.paddingSmall
 
-    BusyIndicatorWithProgress {
-        id: busyIndicator
-        size: BusyIndicatorSize.Medium
-        anchors.centerIn: indicator
-        running: false
-        _forceAnimation: true
-    }
-
-    Label {
-        id: intermediateLabel
-        anchors.topMargin: Theme.paddingLarge
-        anchors.top: parent.top
-        anchors.left: indicator.right
-        anchors.right: parent.right
-        anchors.rightMargin: Theme.horizontalPageMargin
-        anchors.leftMargin: Theme.paddingMedium * 0.7
-        text: {
-            if (root._empty) return root._active ?
-                                 root.textPlaceholderActive :
-                                 root.textPlaceholder
-            return root.text
+        anchors {
+            topMargin: Theme.paddingLarge
+            top: parent.top
+            leftMargin: Theme.paddingSmall
+            left: parent.left
+            rightMargin: root.dialogMode ? Theme.paddingSmall : Theme.horizontalPageMargin
+            right: parent.right
         }
-        wrapMode: root._empty ? Text.NoWrap : Text.WordWrap
-        truncationMode: _empty ? TruncationMode.Fade : TruncationMode.None
-        color: root._empty ? root._sColor : root._pColor
-        font.italic: root._empty
+
+        Item {
+            id: indicatorWrapper
+
+            width: indicator.width
+            height: indicator.height
+
+            SpeechIndicator {
+                id: indicator
+
+                width: Theme.itemSizeSmall
+                color: root._pColor
+                // 0 - no speech, 1 - speech detected,
+                // 2 - speech decoding, 3 - speech initializing,
+                // 4 - playing speech
+                status: 0
+                off: false
+                visible: opacity > 0.0
+                opacity: busyIndicator.running ? 0.0 : 1.0
+                Behavior on opacity { FadeAnimator {} }
+
+            }
+
+            BusyIndicatorWithProgress {
+                id: busyIndicator
+
+                size: BusyIndicatorSize.Medium
+                anchors.centerIn: indicator
+                running: false
+                _forceAnimation: true
+            }
+        }
+
+        Label {
+            id: intermediateLabel
+
+            text: {
+                if (root._empty) return root._active ?
+                                     root.textPlaceholderActive :
+                                     root.textPlaceholder
+                return root.text
+            }
+            wrapMode: root._empty ? Text.NoWrap : Text.WordWrap
+            truncationMode: _empty ? TruncationMode.Fade : TruncationMode.None
+            color: root._empty ? root._sColor : root._pColor
+            font.italic: root._empty
+            width: parent.width - indicator.width -
+                   (root.dialogMode ? 2 * (root.buttonSize + Theme.paddingSmall) : 0)
+            Behavior on width { NumberAnimation { duration: 100 } }
+        }
+
+        Row {
+            height: root.buttonSize
+            anchors.verticalCenter: indicatorWrapper.verticalCenter
+            opacity: root.dialogMode ? 1.0 : 0.0
+            Behavior on opacity { FadeAnimator {} }
+            visible: opacity > 0.0
+
+            IconButton {
+                width: root.buttonSize; height: root.buttonSize
+                icon {
+                    width: root.buttonSize * 0.8; height: root.buttonSize * 0.8
+                    source: "image://theme/icon-m-accept?" + (pressed
+                                                              ? Theme.highlightColor
+                                                              : Theme.primaryColor)
+                }
+                onClicked: root.accept()
+            }
+
+            IconButton {
+                width: root.buttonSize; height: root.buttonSize
+                icon {
+                    width: root.buttonSize * 0.8; height: root.buttonSize * 0.8
+                    source: "image://theme/icon-m-dismiss?" + (pressed
+                                                               ? Theme.highlightColor
+                                                               : Theme.primaryColor)
+                }
+                onClicked: root.dismiss()
+            }
+        }
     }
 
     MouseArea {
         id: mouse
-        enabled: root.clickable && !root.off
+
+        enabled: root.clickable && !root.off && !root.dialogMode
         anchors.fill: parent
         onPressedChanged: {
             if (pressed) root.pressed()
