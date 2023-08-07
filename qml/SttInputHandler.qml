@@ -109,10 +109,15 @@ InputHandler {
                 onActiveChanged: {
                     if (!speechService.active) {
                         panel.text = ""
+                        panel.dialogMode = false
                     }
                 }
                 onListeningChanged: {
                     panel.clicked = false
+                }
+                onTaskEndedUnexpectedly: {
+                    panel.text = ""
+                    panel.dialogMode = false
                 }
             }
 
@@ -159,6 +164,9 @@ InputHandler {
                 onClick: {
                     if (speechService.connected && !speechService.listening) clicked = true
                     else clicked = false
+
+                    text = ""
+                    dialogMode = false
 
                     if (status === 2 || status === 3 || status === 4) {
                         speechService.cancel()
